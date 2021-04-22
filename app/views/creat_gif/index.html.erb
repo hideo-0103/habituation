@@ -1,0 +1,76 @@
+<%= javascript_pack_tag 'jsgif-master/b64' %>
+<%= javascript_pack_tag 'jsgif-master/LZWEncoder' %>
+<%= javascript_pack_tag 'jsgif-master/NeuQuant' %>
+<%= javascript_pack_tag 'jsgif-master/GIFEncoder' %>
+<%= stylesheet_pack_tag 'application' %>
+<div id="anime">
+<%= image_tag "1.jpg"%>
+<%= image_tag "2.jpg"%>
+<%= image_tag "3.jpg"%>
+<%= image_tag "4.jpg"%>
+
+</div>
+
+<p>速度：<input type="range" id="anime_speed" value="500" min="100" max="500"></p>
+<p><button onclick="createGIF()">アニメGIFを作成する</button></p>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<p><img id="anime_gif" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="></p>
+
+<p><button id="download" onclick="downloadGIF();" style="display:none;">ダウンロード</button></p>
+
+<script>
+var encoder;
+
+function createGIF()
+{
+	//canvasの取得
+	var canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
+	//GIFEncoderの初期処理
+	encoder = new GIFEncoder();
+	encoder.setRepeat(0); //繰り返し回数 0=無限ループ
+	encoder.setDelay(document.getElementById('anime_speed').value); //1コマあたりの待機秒数（ミリ秒）
+	encoder.start();
+	//画像ファイル一覧を取得
+	frames = document.getElementById('anime').getElementsByTagName('img');
+	//canvasのサイズを1枚目のコマに合わせる
+	canvas.width = frames[0].naturalWidth;
+	canvas.height = frames[0].naturalHeight;
+	//全ての画像をcanvasへ描画
+	for (var frame_no = 0; frame_no < frames.length; frame_no++) {
+		ctx.drawImage(frames[frame_no], 0, 0);
+		encoder.addFrame(ctx); //コマ追加
+	}
+	//アニメGIFの生成
+	encoder.finish();
+	document.getElementById('anime_gif').src = 'data:image/gif;base64,' + encode64(encoder.stream().getData());
+	//ダウンロードボタンを表示
+	document.getElementById('download').style.display = 'block';
+}
+function downloadGIF()
+{
+	encoder.download("download.gif");
+}
+
+function encode64(input) {
+	var output = "", i = 0, l = input.length,
+	key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", 
+	chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+	while (i < l) {
+		chr1 = input.charCodeAt(i++);
+		chr2 = input.charCodeAt(i++);
+		chr3 = input.charCodeAt(i++);
+		enc1 = chr1 >> 2;
+		enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+		enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+		enc4 = chr3 & 63;
+		if (isNaN(chr2)) enc3 = enc4 = 64;
+		else if (isNaN(chr3)) enc4 = 64;
+		output = output + key.charAt(enc1) + key.charAt(enc2) + key.charAt(enc3) + key.charAt(enc4);
+	}
+	return output;
+}
+
+</script>
