@@ -3,13 +3,19 @@
 <%= javascript_pack_tag 'jsgif-master/NeuQuant' %>
 <%= javascript_pack_tag 'jsgif-master/GIFEncoder' %>
 <%= stylesheet_pack_tag 'application' %>
-<div id="anime">
-<%= image_tag "1.jpg"%>
-<%= image_tag "2.jpg"%>
-<%= image_tag "3.jpg"%>
-<%= image_tag "4.jpg"%>
 
-</div>
+<p>■画像ファイルを選択してください。<br>
+<input type="file" accept='image/*' multiple="multiple" onchange="loadImage(this);"></p>
+
+<p id="anime"></p>
+
+<style>
+#anime img {
+	width:100px;
+	border:1px solid #cccccc;
+}
+</style>
+
 
 <p>速度：<input type="range" id="anime_speed" value="500" min="100" max="500"></p>
 <p><button onclick="createGIF()">アニメGIFを作成する</button></p>
@@ -22,6 +28,17 @@
 
 <script>
 var encoder;
+function loadImage(obj)
+{
+	document.getElementById('anime').innerHTML = '<p>プレビュー</p>';
+	for (i = 0; i < obj.files.length; i++) {
+		var fileReader = new FileReader();
+		fileReader.onload = (function (e) {
+			document.getElementById('anime').innerHTML += '<img src="' + e.target.result + '">';
+		});
+		fileReader.readAsDataURL(obj.files[i]);
+	}
+}
 
 function createGIF()
 {
